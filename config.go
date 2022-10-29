@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Mukama Willy Fortunate.
+ * Copyright (c) 2022, Mukama Willy Fortunate <napsterphantom@gmail.com>.
  * All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
