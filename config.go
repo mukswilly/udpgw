@@ -54,12 +54,12 @@ type Config struct {
 	// When omitted, DEFAULT_LOG_FILE_REOPEN_RETRIES is used.
 	LogFileReopenRetries *int
 
-	// LogFileCreateMode specifies that the Psiphon server should create a new
+	// LogFileCreateMode specifies that the server should create a new
 	// log file when one is not found, such as after rotation with logrotate
 	// configured with nocreate. The value is the os.FileMode value to use when
 	// creating the file.
 	//
-	// When omitted, the Psiphon server does not create log files.
+	// When omitted, the server does not create log files.
 	LogFileCreateMode *int
 
 	// SkipPanickingLogWriter disables panicking when
