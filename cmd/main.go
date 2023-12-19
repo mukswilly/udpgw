@@ -30,7 +30,7 @@ import (
 
 	"github.com/Psiphon-Inc/rotate-safe-writer"
 	"github.com/mitchellh/panicwrap"
-	"github.com/mukswilly/udpgw"
+	"github.com/ZhymabekRoman/udpgw-windows"
 )
 
 // This code is inspired by https://github.com/Psiphon-Labs/psiphon-tunnel-core/blob/b1e84c4866c1568f380309f73ebc569fdde96652/Server/main.go
@@ -91,14 +91,18 @@ func main() {
 			os.Exit(1)
 		}
 
-		err = os.WriteFile(configFilename, configJSON, 0600)
+		fileMode := os.FileMode(0600)
+		if runtime.GOOS == "windows" {
+			fileMode = 0
+		}
+
+		err = os.WriteFile(configFilename, configJSON, fileMode)
 		if err != nil {
 			fmt.Printf("error writing configuration file: %s\n", err)
 			os.Exit(1)
 		}
 
 	} else if args[0] == "run" {
-
 		configJSON, err := os.ReadFile(configFilename)
 		if err != nil {
 			fmt.Printf("error loading configuration file: %s\n", err)
@@ -117,10 +121,17 @@ func main() {
 		// and fall through to server.RunServices.
 
 		// Unhandled panic wrapper. Logs it, then re-executes the current executable
-		exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
-			Handler:        panicHandler,
-			ForwardSignals: []os.Signal{os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTSTP, syscall.SIGCONT},
-		})
+		if runtime.GOOS == "windows" {
+			exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
+				Handler:        panicHandler,
+				ForwardSignals: []os.Signal{os.Interrupt, os.Kill},
+			})
+		} else {
+			exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
+				Handler:        panicHandler,
+				ForwardSignals: []os.Signal{os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTSTP, syscall.SIGCONT},
+			})
+		}
 		if err != nil {
 			fmt.Printf("failed to set up the panic wrapper: %s\n", err)
 			os.Exit(1)
