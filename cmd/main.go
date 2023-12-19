@@ -26,7 +26,6 @@ import (
 	"io"
 	"os"
 	"runtime"
-	"syscall"
 	"time"
 
 	"github.com/Psiphon-Inc/rotate-safe-writer"
@@ -122,13 +121,6 @@ func main() {
 		// and fall through to server.RunServices.
 
 		// Unhandled panic wrapper. Logs it, then re-executes the current executable
-		var signals []os.Signal
-		if runtime.GOOS == "windows" {
-    		signals = []os.Signal{os.Interrupt, os.Kill}
-		} else {
-		    signals = []os.Signal{os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTSTP, syscall.SIGCONT}
-		}
-
 		exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
 			Handler:        panicHandler,
 			ForwardSignals: signals,
