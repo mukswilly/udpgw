@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -121,17 +122,17 @@ func main() {
 		// and fall through to server.RunServices.
 
 		// Unhandled panic wrapper. Logs it, then re-executes the current executable
+		var signals []os.Signal
 		if runtime.GOOS == "windows" {
-			exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
-				Handler:        panicHandler,
-				ForwardSignals: []os.Signal{os.Interrupt, os.Kill},
-			})
+    		signals = []os.Signal{os.Interrupt, os.Kill}
 		} else {
-			exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
-				Handler:        panicHandler,
-				ForwardSignals: []os.Signal{os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTSTP, syscall.SIGCONT},
-			})
+		    signals = []os.Signal{os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTSTP, syscall.SIGCONT}
 		}
+
+		exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
+			Handler:        panicHandler,
+			ForwardSignals: signals,
+		})
 		if err != nil {
 			fmt.Printf("failed to set up the panic wrapper: %s\n", err)
 			os.Exit(1)
