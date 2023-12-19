@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"syscall"
+	"runtime"
 	"time"
 
 	"github.com/Psiphon-Inc/rotate-safe-writer"
@@ -91,14 +91,18 @@ func main() {
 			os.Exit(1)
 		}
 
-		err = os.WriteFile(configFilename, configJSON, 0600)
+		fileMode := os.FileMode(0600)
+		if runtime.GOOS == "windows" {
+			fileMode = 0
+		}
+
+		err = os.WriteFile(configFilename, configJSON, fileMode)
 		if err != nil {
 			fmt.Printf("error writing configuration file: %s\n", err)
 			os.Exit(1)
 		}
 
 	} else if args[0] == "run" {
-
 		configJSON, err := os.ReadFile(configFilename)
 		if err != nil {
 			fmt.Printf("error loading configuration file: %s\n", err)
@@ -119,7 +123,7 @@ func main() {
 		// Unhandled panic wrapper. Logs it, then re-executes the current executable
 		exitStatus, err := panicwrap.Wrap(&panicwrap.WrapConfig{
 			Handler:        panicHandler,
-			ForwardSignals: []os.Signal{os.Interrupt, os.Kill, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2, syscall.SIGTSTP, syscall.SIGCONT},
+			ForwardSignals: signals,
 		})
 		if err != nil {
 			fmt.Printf("failed to set up the panic wrapper: %s\n", err)

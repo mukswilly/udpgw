@@ -25,6 +25,7 @@ import (
 	"math/rand"
 	"net"
 	"strings"
+	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -76,26 +77,35 @@ func NewDNSResolver(defaultResolver string) (*DNSResolver, error) {
 		lastReloadTime: int64(monotime.Now()),
 	}
 
-	dns.ReloadableFile = common.NewReloadableFile(
-		DNS_SYSTEM_CONFIG_FILENAME,
-		true,
-		func(fileContent []byte, _ time.Time) error {
+	if runtime.GOOS == "windows" {
+		// On Windows, use net.LookupIP to resolve the DNS server
+		resolver, err := net.LookupIP(defaultResolver)
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+		dns.resolvers = resolver
+	} else {
+		dns.ReloadableFile = common.NewReloadableFile(
+			DNS_SYSTEM_CONFIG_FILENAME,
+			true,
+			func(fileContent []byte, _ time.Time) error {
 
-			resolvers, err := parseResolveConf(fileContent)
-			if err != nil {
-				// On error, state remains the same
-				return errors.Trace(err)
-			}
+				resolvers, err := parseResolveConf(fileContent)
+				if err != nil {
+					// On error, state remains the same
+					return errors.Trace(err)
+				}
 
-			dns.resolvers = resolvers
+				dns.resolvers = resolvers
 
-			log.WithTraceFields(
-				LogFields{
-					"resolvers": resolvers,
-				}).Debug("loaded system DNS resolvers")
+				log.WithTraceFields(
+					LogFields{
+						"resolvers": resolvers,
+					}).Debug("loaded system DNS resolvers")
 
-			return nil
-		})
+				return nil
+			})
+	}
 
 	_, err := dns.Reload()
 	if err != nil {
