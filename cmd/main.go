@@ -30,7 +30,7 @@ import (
 
 	"github.com/Psiphon-Inc/rotate-safe-writer"
 	"github.com/mitchellh/panicwrap"
-	"github.com/ZhymabekRoman/udpgw-windows"
+	"github.com/mukswilly/udpgw"
 )
 
 // This code is inspired by https://github.com/Psiphon-Labs/psiphon-tunnel-core/blob/b1e84c4866c1568f380309f73ebc569fdde96652/Server/main.go

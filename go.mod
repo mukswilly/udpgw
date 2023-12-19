@@ -1,4 +1,4 @@
-module github.com/ZhymabekRoman/udpgw-windows
+module github.com/mukswilly/udpgw
 
 go 1.19
 
